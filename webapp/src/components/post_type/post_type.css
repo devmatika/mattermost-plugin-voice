@@ -21,3 +21,7 @@ button.voice-player-playbutton {
   border: none;
   outline: inherit;
 }
+
+button.voice-player-speed {
+  outline: inherit;
+}

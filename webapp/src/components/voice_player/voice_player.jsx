@@ -16,6 +16,12 @@ function pad2nozero(n) {
     return val < 10 ? `${val}` : `${Math.min(val, 99)}`;
 }
 
+const PLAYBACK_SPEEDS = [1, 1.5, 2];
+
+function formatSpeed(rate) {
+    return rate === 1 ? '1x' : `${rate}x`;
+}
+
 export default class VoicePlayer extends React.PureComponent {
     static propTypes = {
         source: PropTypes.string.isRequired,
@@ -33,6 +39,7 @@ export default class VoicePlayer extends React.PureComponent {
             playing: false,
             played: false,
             progress: 0,
+            playbackRate: 1,
         };
     }
 
@@ -84,6 +91,8 @@ export default class VoicePlayer extends React.PureComponent {
             this.setState({playing: false, played: false});
         };
 
+        player.playbackRate = this.state.playbackRate;
+
         this.setState({
             player,
             duration: pad2nozero(Math.round(durationSecs) / 60) + ':' + pad2(Math.round(durationSecs) % 60),
@@ -118,6 +127,18 @@ export default class VoicePlayer extends React.PureComponent {
 
         player.currentTime = seekTime;
         this.setState({player, progress});
+    }
+
+    cyclePlaybackSpeed = () => {
+        const currentIndex = PLAYBACK_SPEEDS.indexOf(this.state.playbackRate);
+        const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % PLAYBACK_SPEEDS.length;
+        const playbackRate = PLAYBACK_SPEEDS[nextIndex];
+
+        if (this.state.player) {
+            this.state.player.playbackRate = playbackRate;
+        }
+
+        this.setState({playbackRate});
     }
 
     render() {
@@ -157,6 +178,22 @@ export default class VoicePlayer extends React.PureComponent {
             }
         `;
 
+        const speedButtonCss = css`
+            background: none;
+            border: none;
+            padding: 0 4px;
+            margin-left: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1;
+            cursor: pointer;
+            color: ${changeOpacity(theme.centerChannelColor, 0.56)};
+            min-width: 28px;
+            &:hover {
+                color: ${theme.linkColor};
+            }
+        `;
+
         return (
             <div>
                 <div
@@ -177,6 +214,16 @@ export default class VoicePlayer extends React.PureComponent {
                         value={this.state.progress}
                     />
                     <span>{playbackInfo}</span>
+                    <button
+                        type='button'
+                        className='voice-player-speed'
+                        css={speedButtonCss}
+                        onClick={this.cyclePlaybackSpeed}
+                        title='Playback speed'
+                        aria-label={`Playback speed ${formatSpeed(this.state.playbackRate)}`}
+                    >
+                        {formatSpeed(this.state.playbackRate)}
+                    </button>
                 </div>
                 <audio
                     id={this.props.playerId}

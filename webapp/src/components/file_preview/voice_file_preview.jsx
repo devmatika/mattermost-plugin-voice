@@ -40,6 +40,7 @@ export default function VoiceFilePreview(props) {
             source={source}
             duration={duration}
             theme={props.theme}
+            playerId={`voice_preview_${post.id}_${fileInfo.id}`}
         />
     );
 }
