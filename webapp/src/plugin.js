@@ -4,6 +4,7 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import PostType from './components/post_type';
 import Root from './components/root';
+import VoiceFilePreview, {isVoiceFile} from './components/file_preview/voice_file_preview';
 import reducer from './reducer';
 import {recordVoiceMessage} from './actions';
 
@@ -30,6 +31,7 @@ export default class VoicePlugin {
             />,
         );
         registry.registerPostTypeComponent('custom_voice', PostType);
+        registry.registerFilePreviewComponent(isVoiceFile, VoiceFilePreview);
         registry.registerReducer(reducer);
         registry.registerSlashCommandWillBePostedHook((message, args) => {
             if (message.trim() === '/voice') {

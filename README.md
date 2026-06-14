@@ -22,7 +22,7 @@ If the timer stays at `0:00` or Send does nothing, check that Mattermost has **m
 
 ### Mobile app
 
-- **Playback:** Voice messages include the MP3 as a normal file attachment, so you can play them from the mobile app.
+- **Playback:** Voice messages are stored as standard MP3 file attachments. After updating the plugin, send a **new** test message. Old messages may still show only text until re-sent.
 - **Recording:** The in-app recorder is not available on mobile. Use the **+** button to attach an audio file (for example a voice memo). Audio uploads are automatically recognized as voice messages.
 - The `/voice` slash command shows instructions on mobile instead of opening the recorder.
 

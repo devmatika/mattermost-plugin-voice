@@ -9,8 +9,8 @@ import (
 
 const postTypeVoice = "custom_voice"
 
-// MessageHasBeenPosted ensures voice posts include file attachments for mobile clients
-// and upgrades regular audio uploads to the voice post type.
+// MessageHasBeenPosted normalizes voice posts for mobile clients by attaching files
+// and converting legacy custom post types to standard posts with file previews.
 func (p *Plugin) MessageHasBeenPosted(_ *plugin.Context, post *model.Post) {
 	if post == nil || post.Id == "" {
 		return
@@ -19,8 +19,8 @@ func (p *Plugin) MessageHasBeenPosted(_ *plugin.Context, post *model.Post) {
 	updatedPost := post.Clone()
 	changed := false
 
-	if post.Type == postTypeVoice {
-		changed = ensureVoicePostFiles(updatedPost)
+	if isVoicePost(post) {
+		changed = normalizeVoicePost(updatedPost)
 	} else if len(post.FileIds) > 0 {
 		changed = upgradeAudioUploadPost(p, updatedPost)
 	}
@@ -34,20 +34,49 @@ func (p *Plugin) MessageHasBeenPosted(_ *plugin.Context, post *model.Post) {
 	}
 }
 
-func ensureVoicePostFiles(post *model.Post) bool {
-	fileID, ok := post.GetProp("fileId").(string)
-	if !ok || fileID == "" {
-		return false
+func isVoicePost(post *model.Post) bool {
+	if post.Type == postTypeVoice {
+		return true
 	}
 
-	for _, existingID := range post.FileIds {
-		if existingID == fileID {
-			return false
+	if voiceMessage, ok := post.GetProp("voice_message").(bool); ok && voiceMessage {
+		return true
+	}
+
+	return false
+}
+
+func normalizeVoicePost(post *model.Post) bool {
+	changed := false
+
+	fileID, ok := post.GetProp("fileId").(string)
+	if ok && fileID != "" {
+		hasFile := false
+		for _, existingID := range post.FileIds {
+			if existingID == fileID {
+				hasFile = true
+				break
+			}
+		}
+		if !hasFile {
+			post.FileIds = append(post.FileIds, fileID)
+			changed = true
 		}
 	}
 
-	post.FileIds = append(post.FileIds, fileID)
-	return true
+	if post.Type == postTypeVoice {
+		post.Type = model.PostTypeDefault
+		changed = true
+	}
+
+	post.DelProp("attachments")
+
+	if post.GetProp("voice_message") == nil {
+		post.AddProp("voice_message", true)
+		changed = true
+	}
+
+	return changed
 }
 
 func upgradeAudioUploadPost(p *Plugin, post *model.Post) bool {
@@ -57,7 +86,8 @@ func upgradeAudioUploadPost(p *Plugin, post *model.Post) bool {
 			continue
 		}
 
-		post.Type = postTypeVoice
+		post.Type = model.PostTypeDefault
+		post.AddProp("voice_message", true)
 		post.AddProp("fileId", fileID)
 
 		if post.Message == "" {

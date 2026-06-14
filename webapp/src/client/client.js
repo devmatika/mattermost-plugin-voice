@@ -113,16 +113,11 @@ export default class Client {
                 channel_id: channelId,
                 root_id: rootId,
                 message: `Voice Message (${durationLabel})`,
-                type: 'custom_voice',
                 file_ids: [fileId],
                 props: {
+                    voice_message: true,
                     fileId,
                     duration: recording.duration,
-                    attachments: [{
-                        fallback: `Voice message (${durationLabel})`,
-                        title: 'Voice message',
-                        text: `Duration: ${durationLabel}`,
-                    }],
                 },
             };
             const body = JSON.stringify(data);

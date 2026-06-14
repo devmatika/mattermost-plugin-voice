@@ -1,8 +1,8 @@
-GO ?= $(shell command -v go 2> /dev/null)
+GO ?= $(shell if command -v go >/dev/null 2>&1; then command -v go; elif test -x "$(HOME)/.local/go/bin/go"; then echo "$(HOME)/.local/go/bin/go"; elif test -x /usr/local/go/bin/go; then echo /usr/local/go/bin/go; fi)
 NPM ?= $(shell command -v npm 2> /dev/null)
 CURL ?= $(shell command -v curl 2> /dev/null)
 MANIFEST_FILE ?= plugin.json
-GOPATH ?= $(shell go env GOPATH)
+GOPATH ?= $(shell $(GO) env GOPATH 2>/dev/null)
 GO_TEST_FLAGS ?= -race
 GO_BUILD_FLAGS ?=
 MM_UTILITIES_DIR ?= ../mattermost-utilities
