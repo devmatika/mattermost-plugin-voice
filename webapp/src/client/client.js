@@ -113,6 +113,7 @@ export default class Client {
                 channel_id: channelId,
                 root_id: rootId,
                 message: `Voice Message (${durationLabel})`,
+                type: 'custom_voice',
                 file_ids: [fileId],
                 props: {
                     voice_message: true,

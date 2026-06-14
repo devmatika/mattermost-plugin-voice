@@ -9,8 +9,7 @@ import (
 
 const postTypeVoice = "custom_voice"
 
-// MessageHasBeenPosted normalizes voice posts for mobile clients by attaching files
-// and converting legacy custom post types to standard posts with file previews.
+// MessageHasBeenPosted ensures voice posts include file attachments for mobile clients.
 func (p *Plugin) MessageHasBeenPosted(_ *plugin.Context, post *model.Post) {
 	if post == nil || post.Id == "" {
 		return
@@ -64,8 +63,8 @@ func normalizeVoicePost(post *model.Post) bool {
 		}
 	}
 
-	if post.Type == postTypeVoice {
-		post.Type = model.PostTypeDefault
+	if post.Type != postTypeVoice {
+		post.Type = postTypeVoice
 		changed = true
 	}
 
@@ -86,7 +85,7 @@ func upgradeAudioUploadPost(p *Plugin, post *model.Post) bool {
 			continue
 		}
 
-		post.Type = model.PostTypeDefault
+		post.Type = postTypeVoice
 		post.AddProp("voice_message", true)
 		post.AddProp("fileId", fileID)
 

@@ -35,8 +35,9 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	if trigger == commandTriggerVoice {
 		return &model.CommandResponse{
 			ResponseType: model.CommandResponseTypeEphemeral,
-			Text: "Voice recording is available in the web and desktop apps. " +
-				"On mobile, attach an audio file using the + button (for example a voice memo).",
+			Text: "**Desktop / web:** use **Voice message** in the attachment menu, the app bar, or the main menu.\n\n" +
+				"**Mobile app:** tap **+ → Attach a file** and choose an audio recording (MP3, M4A, voice memo, etc.). " +
+				"The server recognizes it as a voice message automatically.",
 		}, nil
 	}
 

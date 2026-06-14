@@ -22,11 +22,14 @@ If the timer stays at `0:00` or Send does nothing, check that Mattermost has **m
 
 ### Mobile app
 
-- **Playback:** Voice messages are stored as standard MP3 file attachments. After updating the plugin, send a **new** test message. Old messages may still show only text until re-sent.
-- **Recording:** The in-app recorder is not available on mobile. Use the **+** button to attach an audio file (for example a voice memo). Audio uploads are automatically recognized as voice messages.
-- The `/voice` slash command shows instructions on mobile instead of opening the recorder.
+- **Playback:** Voice messages include an MP3 attachment. Tap the player below the message to listen.
+- **Recording:** The in-app recorder is **not available** on the native mobile app ([Mattermost limitation](https://developers.mattermost.com/integrate/plugins/components/mobile/)). To send a voice message, tap **+ → Attach a file** and choose an audio file (voice memo, MP3, M4A, etc.). The plugin recognizes it automatically.
+- Type `/voice` in a channel for step-by-step instructions.
 
-Mobile native apps do not support web app plugin UI components. See the [Mattermost mobile plugin documentation](https://developers.mattermost.com/integrate/plugins/components/mobile/) for details.
+### Desktop / browser
+
+- **Playback:** New voice messages show an inline player (not a download-only file card). Older messages sent before this update may still appear as file attachments until re-sent.
+- **Recording:** Use **Voice message** in the attachment menu, `/voice`, the app bar, or the main menu.
 
 ## Installation
 

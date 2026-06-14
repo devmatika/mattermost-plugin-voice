@@ -10,7 +10,7 @@ function isVoiceFile(fileInfo, post) {
         return false;
     }
 
-    if (post.props?.voice_message === true) {
+    if (post.props?.voice_message === true || post.props?.voice_message === 'true') {
         return true;
     }
 
@@ -18,7 +18,16 @@ function isVoiceFile(fileInfo, post) {
         return true;
     }
 
-    return fileInfo.mime_type?.startsWith('audio/') && post.props?.fileId === fileInfo.id;
+    const mimeType = fileInfo.mime_type || fileInfo.mimeType || '';
+    if (mimeType.startsWith('audio/') && post.props?.fileId === fileInfo.id) {
+        return true;
+    }
+
+    if (mimeType.startsWith('audio/') && post.message?.startsWith('Voice Message')) {
+        return true;
+    }
+
+    return false;
 }
 
 export default function VoiceFilePreview(props) {

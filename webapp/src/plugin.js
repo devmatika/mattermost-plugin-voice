@@ -7,8 +7,12 @@ import Root from './components/root';
 import VoiceFilePreview, {isVoiceFile} from './components/file_preview/voice_file_preview';
 import reducer from './reducer';
 import {recordVoiceMessage} from './actions';
+import {getPluginURL} from './utils';
+import {injectVoiceStyles} from './styles';
 
 import Client from './client';
+
+const microphoneIcon = <i className='icon fa fa-microphone'/>;
 
 export default class VoicePlugin {
     initialize(registry, store) {
@@ -17,14 +21,18 @@ export default class VoicePlugin {
             Client4.setUrl(config.SiteURL);
         }
 
+        injectVoiceStyles();
+
         const client = new Client();
+
+        const startRecording = (channelId = '', rootId = '') => {
+            recordVoiceMessage(channelId, rootId, client)(store.dispatch, store.getState);
+        };
 
         registry.registerRootComponent(Root);
         registry.registerFileUploadMethod(
-            <i className='icon fa fa-microphone'/>,
-            () => {
-                recordVoiceMessage('', '', client)(store.dispatch, store.getState);
-            },
+            microphoneIcon,
+            () => startRecording(),
             <FormattedMessage
                 id='plugin.upload'
                 defaultMessage='Voice message'
@@ -35,10 +43,28 @@ export default class VoicePlugin {
         registry.registerReducer(reducer);
         registry.registerSlashCommandWillBePostedHook((message, args) => {
             if (message.trim() === '/voice') {
-                recordVoiceMessage(args.channel_id, args.root_id, client)(store.dispatch, store.getState);
+                startRecording(args.channel_id, args.root_id);
                 return {};
             }
             return {message, args};
+        });
+        registry.registerMainMenuAction(
+            <FormattedMessage
+                id='plugin.main_menu'
+                defaultMessage='Record voice message'
+            />,
+            () => startRecording(),
+            microphoneIcon,
+        );
+        registry.registerAppBarComponent({
+            iconUrl: `${getPluginURL()}/public/voice-icon.svg`,
+            action: (channelId) => startRecording(channelId),
+            tooltipText: (
+                <FormattedMessage
+                    id='plugin.app_bar'
+                    defaultMessage='Voice message'
+                />
+            ),
         });
     }
 }
