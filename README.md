@@ -52,6 +52,12 @@ export MM_ADMIN_PASSWORD=password
 
 For more details on how to develop a plugin refer to the official [documentation](https://developers.mattermost.com/integrate/plugins/).
 
+## Support
+
+If you find this plugin useful and want to support its development, you can donate here:
+
+**[Donate via NOWPayments](https://nowpayments.io/donation/davood)**
+
 ## License
 
 [mattermost-plugin-voice](https://github.com/devmatika/mattermost-plugin-voice) is licensed under [MIT](LICENSE)  
