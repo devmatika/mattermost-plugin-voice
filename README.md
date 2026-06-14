@@ -14,7 +14,15 @@ To start sending a voice message you can either use the `/voice` slash command o
 
 ## Limitations
 
-This plugin only works on web client and desktop app. Mobile native apps are **not** [supported](https://developers.mattermost.com/extend/plugins/mobile/).
+This plugin uses web app components for recording and the custom audio player. Those parts work in the **web client** and **desktop app**.
+
+### Mobile app
+
+- **Playback:** Voice messages now include the MP3 as a normal file attachment, so you can play them from the mobile app.
+- **Recording:** The in-app recorder is not available on mobile. Use the **+** button to attach an audio file (for example a voice memo). Audio uploads are automatically recognized as voice messages.
+- The `/voice` slash command shows instructions on mobile instead of opening the recorder.
+
+Mobile native apps do not support web app plugin UI components. See the [Mattermost mobile plugin documentation](https://developers.mattermost.com/integrate/plugins/components/mobile/) for details.
 
 ## Installation
 

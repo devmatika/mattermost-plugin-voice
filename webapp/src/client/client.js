@@ -26,6 +26,13 @@ function parseJSONResponse(response) {
     return response.json();
 }
 
+function formatDuration(msecs) {
+    const secs = Math.round(msecs / 1000);
+    const minutes = Math.floor(secs / 60);
+    const seconds = secs % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+}
+
 export default class Client {
     constructor() {
         this._onUpdate = null;
@@ -102,14 +109,22 @@ export default class Client {
             body: formData,
             credentials: 'same-origin',
         }).then(parseJSONResponse).then((fileResponse) => {
+            const fileId = fileResponse.file_infos[0].id;
+            const durationLabel = formatDuration(recording.duration);
             const data = {
                 channel_id: channelId,
                 root_id: rootId,
-                message: 'Voice Message',
+                message: `Voice Message (${durationLabel})`,
                 type: 'custom_voice',
+                file_ids: [fileId],
                 props: {
-                    fileId: fileResponse.file_infos[0].id,
+                    fileId,
                     duration: recording.duration,
+                    attachments: [{
+                        fallback: `Voice message (${durationLabel})`,
+                        title: 'Voice message',
+                        text: `Duration: ${durationLabel}`,
+                    }],
                 },
             };
 

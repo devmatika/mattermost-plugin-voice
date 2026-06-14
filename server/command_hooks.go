@@ -33,7 +33,11 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	trigger := strings.TrimPrefix(strings.Fields(args.Command)[0], "/")
 
 	if trigger == commandTriggerVoice {
-		return &model.CommandResponse{}, nil
+		return &model.CommandResponse{
+			ResponseType: model.CommandResponseTypeEphemeral,
+			Text: "Voice recording is available in the web and desktop apps. " +
+				"On mobile, attach an audio file using the + button (for example a voice memo).",
+		}, nil
 	}
 
 	return &model.CommandResponse{
