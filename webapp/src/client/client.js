@@ -1,9 +1,30 @@
-import request from 'superagent';
 import {Client4} from 'mattermost-redux/client';
 
 import {getPluginURL} from '../utils.js';
 
 import Recorder from './recorder.js';
+
+function getRequestHeaders(method) {
+    const options = Client4.getOptions({method});
+    const headers = {...options.headers};
+
+    // Let the browser set multipart boundaries for file uploads.
+    if (method === 'post' && headers['Content-Type']?.includes('multipart/form-data')) {
+        delete headers['Content-Type'];
+    }
+
+    return headers;
+}
+
+function parseJSONResponse(response) {
+    if (!response.ok) {
+        return response.text().then((text) => {
+            throw new Error(text || response.statusText);
+        });
+    }
+
+    return response.json();
+}
 
 export default class Client {
     constructor() {
@@ -12,14 +33,21 @@ export default class Client {
         this.recorder = new Recorder({
             workerURL: `${getPluginURL()}/public/recorder.worker.js`,
         });
-        request.get(`${getPluginURL()}/config`).accept('application/json').then((res) => {
-            this.recorder.init({
-                maxDuration: parseInt(res.body.VoiceMaxDuration, 10),
-                bitRate: parseInt(res.body.VoiceAudioBitrate, 10),
-            }).then(() => {
-                // console.log('client: recorder initialized');
+
+        fetch(`${getPluginURL()}/config`, {
+            headers: {
+                Accept: 'application/json',
+            },
+            credentials: 'same-origin',
+        }).then(parseJSONResponse).then((config) => {
+            return this.recorder.init({
+                maxDuration: parseInt(config.VoiceMaxDuration, 10),
+                bitRate: parseInt(config.VoiceAudioBitrate, 10),
             });
+        }).catch(() => {
+            // Use recorder defaults if config cannot be loaded.
         });
+
         this.recorder.on('maxduration', () => {
             if (this.timerID) {
                 clearInterval(this.timerID);
@@ -34,7 +62,6 @@ export default class Client {
     }
 
     startRecording(channelId, rootId) {
-        // console.log('client: start recording');
         this.channelId = channelId || null;
         this.rootId = rootId || null;
         this._recording = null;
@@ -48,7 +75,6 @@ export default class Client {
     }
 
     stopRecording() {
-        // console.log('client: stop recording');
         if (this.timerID) {
             clearInterval(this.timerID);
         }
@@ -57,7 +83,6 @@ export default class Client {
     }
 
     cancelRecording() {
-        // console.log('client: cancel recording');
         if (this.timerID) {
             clearInterval(this.timerID);
         }
@@ -67,28 +92,34 @@ export default class Client {
 
     _sendRecording({channelId, rootId, recording}) {
         const filename = `${new Date().getTime() - recording.duration}.mp3`;
+        const formData = new FormData();
+        formData.append('files', recording.blob, filename);
+        formData.append('channel_id', channelId);
 
-        return request.
-            post(Client4.getFilesRoute()).
-            set(Client4.getOptions({method: 'post'}).headers).
-            attach('files', recording.blob, filename).
-            field('channel_id', channelId).
-            accept('application/json').then((res) => {
-                const data = {
-                    channel_id: channelId,
-                    root_id: rootId,
-                    message: 'Voice Message',
-                    type: 'custom_voice',
-                    props: {
-                        fileId: res.body.file_infos[0].id,
-                        duration: recording.duration,
-                    },
-                };
-                return request.post(Client4.getPostsRoute()).
-                    set(Client4.getOptions({method: 'post'}).headers).
-                    send(data).
-                    accept('application/json');
-            });
+        return fetch(Client4.getFilesRoute(), {
+            method: 'POST',
+            headers: getRequestHeaders('post'),
+            body: formData,
+            credentials: 'same-origin',
+        }).then(parseJSONResponse).then((fileResponse) => {
+            const data = {
+                channel_id: channelId,
+                root_id: rootId,
+                message: 'Voice Message',
+                type: 'custom_voice',
+                props: {
+                    fileId: fileResponse.file_infos[0].id,
+                    duration: recording.duration,
+                },
+            };
+
+            return fetch(Client4.getPostsRoute(), {
+                method: 'POST',
+                headers: getRequestHeaders('post'),
+                body: JSON.stringify(data),
+                credentials: 'same-origin',
+            }).then(parseJSONResponse);
+        });
     }
 
     sendRecording(channelId, rootId) {
@@ -97,7 +128,7 @@ export default class Client {
         }
         const cId = this.channelId ? this.channelId : channelId;
         const rId = !this.channelId && rootId ? rootId : this.rootId;
-        // console.log('client: send recording');
+
         if (this._recording) {
             return this._sendRecording({
                 channelId: cId,

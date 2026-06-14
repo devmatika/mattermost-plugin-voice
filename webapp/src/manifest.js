@@ -7,12 +7,14 @@ const manifest = JSON.parse(`
     "description": "Mattermost plugin to enable voice messaging.",
     "homepage_url": "https://github.com/streamer45/mattermost-plugin-voice",
     "support_url": "https://github.com/streamer45/mattermost-plugin-voice/issues",
-    "version": "0.2.2",
-    "min_server_version": "5.12.0",
+    "version": "0.4.0",
+    "min_server_version": "11.0.0",
     "server": {
         "executables": {
-            "linux-amd64": "server/dist/plugin-linux-amd64",
             "darwin-amd64": "server/dist/plugin-darwin-amd64",
+            "darwin-arm64": "server/dist/plugin-darwin-arm64",
+            "linux-amd64": "server/dist/plugin-linux-amd64",
+            "linux-arm64": "server/dist/plugin-linux-arm64",
             "windows-amd64": "server/dist/plugin-windows-amd64.exe"
         },
         "executable": ""
@@ -30,7 +32,9 @@ const manifest = JSON.parse(`
                 "type": "number",
                 "help_text": "Max duration allowed (in seconds) for voice messages.",
                 "placeholder": "",
-                "default": 300
+                "default": 300,
+                "hosting": "",
+                "secret": false
             },
             {
                 "key": "VoiceAudioBitrate",
@@ -52,9 +56,12 @@ const manifest = JSON.parse(`
                         "display_name": "Low (48 kbps)",
                         "value": "48"
                     }
-                ]
+                ],
+                "hosting": "",
+                "secret": false
             }
-        ]
+        ],
+        "sections": null
     }
 }
 `);
@@ -62,3 +69,4 @@ const manifest = JSON.parse(`
 export default manifest;
 export const id = manifest.id;
 export const version = manifest.version;
+export const pluginId = manifest.id;

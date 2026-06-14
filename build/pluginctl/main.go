@@ -2,13 +2,14 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"net"
 	"os"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
 const helpText = `
@@ -91,7 +92,7 @@ func getClient() (*model.Client4, error) {
 	if adminUsername != "" && adminPassword != "" {
 		client := model.NewAPIv4Client(siteURL)
 		log.Printf("Authenticating as %s against %s.", adminUsername, siteURL)
-		_, _, err := client.Login(adminUsername, adminPassword)
+		_, _, err := client.Login(context.Background(), adminUsername, adminPassword)
 		if err != nil {
 			return nil, fmt.Errorf("failed to login as %s: %w", adminUsername, err)
 		}
@@ -110,27 +111,23 @@ func getUnixClient(socketPath string) (*model.Client4, bool) {
 	return model.NewAPIv4SocketClient(socketPath), true
 }
 
-// deploy attempts to upload and enable a plugin via the Client4 API.
-// It will fail if plugin uploads are disabled.
 func deploy(client *model.Client4, pluginID, bundlePath string) error {
-	pluginBundle, err := os.Open(bundlePath)
+	pluginBundle, err := os.Open(bundlePath) //nolint:gosec
 	if err != nil {
 		return fmt.Errorf("failed to open %s: %w", bundlePath, err)
 	}
-	defer pluginBundle.Close()
+	defer func() { _ = pluginBundle.Close() }()
 
-	// disabling in case the plugin is enabled. This helps to keep client state
-	// consistent as the plugin gets properly re-initialized.
-	_, _ = client.DisablePlugin(pluginID)
+	_, _ = client.DisablePlugin(context.Background(), pluginID)
 
 	log.Print("Uploading plugin via API.")
-	_, _, err = client.UploadPluginForced(pluginBundle)
+	_, _, err = client.UploadPluginForced(context.Background(), pluginBundle)
 	if err != nil {
 		return fmt.Errorf("failed to upload plugin bundle: %w", err)
 	}
 
 	log.Print("Enabling plugin.")
-	_, err = client.EnablePlugin(pluginID)
+	_, err = client.EnablePlugin(context.Background(), pluginID)
 	if err != nil {
 		return fmt.Errorf("failed to enable plugin: %w", err)
 	}
@@ -138,10 +135,9 @@ func deploy(client *model.Client4, pluginID, bundlePath string) error {
 	return nil
 }
 
-// disablePlugin attempts to disable the plugin via the Client4 API.
 func disablePlugin(client *model.Client4, pluginID string) error {
 	log.Print("Disabling plugin.")
-	_, resp := client.DisablePlugin(pluginID)
+	_, resp := client.DisablePlugin(context.Background(), pluginID)
 	if resp.Error != nil {
 		return fmt.Errorf("failed to disable plugin: %w", resp.Error)
 	}
@@ -149,10 +145,9 @@ func disablePlugin(client *model.Client4, pluginID string) error {
 	return nil
 }
 
-// enablePlugin attempts to enable the plugin via the Client4 API.
 func enablePlugin(client *model.Client4, pluginID string) error {
 	log.Print("Enabling plugin.")
-	_, err := client.EnablePlugin(pluginID)
+	_, err := client.EnablePlugin(context.Background(), pluginID)
 	if err != nil {
 		return fmt.Errorf("failed to enable plugin: %w", err)
 	}
@@ -160,7 +155,6 @@ func enablePlugin(client *model.Client4, pluginID string) error {
 	return nil
 }
 
-// resetPlugin attempts to reset the plugin via the Client4 API.
 func resetPlugin(client *model.Client4, pluginID string) error {
 	err := disablePlugin(client, pluginID)
 	if err != nil {

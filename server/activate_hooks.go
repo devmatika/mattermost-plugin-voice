@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 
-	"github.com/blang/semver"
+	"github.com/blang/semver/v4"
 	"github.com/pkg/errors"
 )
 
-const minimumServerVersion = "5.12.0"
+const minimumServerVersion = "11.0.0"
 
 func (p *Plugin) checkServerVersion() error {
 	serverVersion, err := semver.Parse(p.API.GetServerVersion())

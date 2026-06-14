@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"net/url"
 	"os"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 )
 
@@ -17,22 +17,19 @@ package main
 
 import (
 	"encoding/json"
+	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
-var manifest model.Manifest
-var wsActionPrefix string
+var manifest *model.Manifest
 
 const manifestStr = ` + "`" + `
 %s
 ` + "`" + `
 
 func init() {
-	if err := json.Unmarshal([]byte(manifestStr), &manifest); err != nil {
-		panic(err.Error())
-	}
-	wsActionPrefix = "custom_" + manifest.Id + "_"
+	_ = json.NewDecoder(strings.NewReader(manifestStr)).Decode(&manifest)
 }
 `
 
@@ -103,14 +100,12 @@ func findManifest() (*model.Manifest, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to find manifest in current working directory")
 	}
-	manifestFile, err := os.Open(manifestFilePath)
+	manifestFile, err := os.Open(manifestFilePath) //nolint:gosec
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to open %s", manifestFilePath)
 	}
-	defer manifestFile.Close()
+	defer func() { _ = manifestFile.Close() }()
 
-	// Re-decode the manifest, disallowing unknown fields. When we write the manifest back out,
-	// we don't want to accidentally clobber anything we won't preserve.
 	var manifest model.Manifest
 	decoder := json.NewDecoder(manifestFile)
 	decoder.DisallowUnknownFields()
@@ -118,91 +113,87 @@ func findManifest() (*model.Manifest, error) {
 		return nil, errors.Wrap(err, "failed to parse manifest")
 	}
 
-	// Update the manifest based on the state of the current commit
-	// Use the first version we find (to prevent causing errors)
-	var version string
-	tags := strings.Fields(BuildTagCurrent)
-	for _, t := range tags {
-		if strings.HasPrefix(t, "v") {
-			version = t
-			break
+	if manifest.Version == "" {
+		var version string
+		for _, t := range strings.Fields(BuildTagCurrent) {
+			if strings.HasPrefix(t, "v") {
+				version = t
+				break
+			}
 		}
+		if version == "" {
+			if BuildTagLatest != "" {
+				version = BuildTagLatest + "+" + BuildHashShort
+			} else {
+				version = "v0.0.0+" + BuildHashShort
+			}
+		}
+		manifest.Version = strings.TrimPrefix(version, "v")
 	}
-	if version == "" {
-		version = BuildTagLatest + "+" + BuildHashShort
-	}
-	if strings.HasPrefix(version, "v") {
-		version = version[1:]
-	}
-	manifest.Version = version
 
-	// Update the release notes url to point at the latest tag.
-	manifest.ReleaseNotesURL = manifest.HomepageURL + "releases/tag/" + BuildTagLatest
+	if manifest.ReleaseNotesURL == "" && BuildTagLatest != "" {
+		releaseNotesURL, err := url.JoinPath(manifest.HomepageURL, "releases", "tag", BuildTagLatest)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to build release notes URL")
+		}
+		manifest.ReleaseNotesURL = releaseNotesURL
+	}
 
 	return &manifest, nil
 }
 
-// dumpPluginId writes the plugin id from the given manifest to standard out
 func dumpPluginID(manifest *model.Manifest) {
 	fmt.Printf("%s", manifest.Id)
 }
 
-// dumpPluginVersion writes the plugin version from the given manifest to standard out
 func dumpPluginVersion(manifest *model.Manifest) {
 	fmt.Printf("%s", manifest.Version)
 }
 
-// applyManifest propagates the plugin_id into the server and webapp folders, as necessary
 func applyManifest(manifest *model.Manifest) error {
 	if manifest.HasServer() {
-		// generate JSON representation of Manifest.
 		manifestBytes, err := json.MarshalIndent(manifest, "", "  ")
 		if err != nil {
 			return err
 		}
 		manifestStr := string(manifestBytes)
 
-		// write generated code to file by using Go file template.
-		if err := ioutil.WriteFile(
+		if err := os.WriteFile(
 			"server/manifest.go",
-			[]byte(fmt.Sprintf(pluginIDGoFileTemplate, manifestStr)),
-			0600,
+			fmt.Appendf(nil, pluginIDGoFileTemplate, manifestStr),
+			0o600,
 		); err != nil {
 			return errors.Wrap(err, "failed to write server/manifest.go")
 		}
 	}
 
 	if manifest.HasWebapp() {
-		// generate JSON representation of Manifest.
-		// JSON is very similar and compatible with JS's object literals. so, what we do here
-		// is actually JS code generation.
 		manifestBytes, err := json.MarshalIndent(manifest, "", "    ")
 		if err != nil {
 			return err
 		}
 		manifestStr := string(manifestBytes)
+		manifestStr = strings.ReplaceAll(manifestStr, `\n`, `\\n`)
 
-		// write generated code to file by using JS file template.
-		if err := ioutil.WriteFile(
-			"webapp/src/manifest.ts",
-			[]byte(fmt.Sprintf(pluginIDJSFileTemplate, manifestStr)),
-			0600,
+		if err := os.WriteFile(
+			"webapp/src/manifest.js",
+			fmt.Appendf(nil, pluginIDJSFileTemplate, manifestStr),
+			0o600,
 		); err != nil {
-			return errors.Wrap(err, "failed to open webapp/src/manifest.ts")
+			return errors.Wrap(err, "failed to write webapp/src/manifest.js")
 		}
 	}
 
 	return nil
 }
 
-// distManifest writes the manifest file to the dist directory
 func distManifest(manifest *model.Manifest) error {
 	manifestBytes, err := json.MarshalIndent(manifest, "", "    ")
 	if err != nil {
 		return err
 	}
 
-	if err := ioutil.WriteFile(fmt.Sprintf("dist/%s/plugin.json", manifest.Id), manifestBytes, 0600); err != nil {
+	if err := os.WriteFile(fmt.Sprintf("dist/%s/plugin.json", manifest.Id), manifestBytes, 0o600); err != nil {
 		return errors.Wrap(err, "failed to write plugin.json")
 	}
 

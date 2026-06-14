@@ -2,6 +2,8 @@
 
 This plugin adds support for basic **voice messaging** in Mattermost.
 
+**Requires Mattermost Server v11.0.0 or later** (tested with v11.7.x).
+
 ![](https://i.imgur.com/hPZ3GhG.gif)
 
 ## Demo
@@ -25,7 +27,7 @@ This plugin only works on web client and desktop app. Mobile native apps are **n
 ## Installation
 
 1. Download the latest version from the [release page](https://github.com/streamer45/mattermost-plugin-voice/releases).
-2. Upload the file through **System Console > Plugins > Plugin Management**, or manually upload it to the Mattermost server under plugin directory. See [documentation](https://docs.mattermost.com/administration/plugins.html#set-up-guide) for more details.
+2. Upload the file through **System Console > Plugins > Plugin Management**. See the [plugin documentation](https://docs.mattermost.com/administration-guide/manage/plugins.html) for more details.
 
 ## Development
 
@@ -41,7 +43,7 @@ export MM_ADMIN_USERNAME=admin
 export MM_ADMIN_PASSWORD=password
 ```
 
-For more details on how to develop a plugin refer to the official [documentation](https://developers.mattermost.com/extend/plugins/).
+For more details on how to develop a plugin refer to the official [documentation](https://developers.mattermost.com/integrate/plugins/).
 
 ## License
 

@@ -13,11 +13,7 @@ if (NPM_TARGET === 'debug' || NPM_TARGET === 'debug:watch') {
     devtool = 'eval-cheap-module-source-map';
 }
 
-const plugins = [
-    new webpack.ProvidePlugin({
-        process: 'process/browser',
-    }),
-];
+const plugins = [];
 
 if (NPM_TARGET === 'build:watch' || NPM_TARGET === 'debug:watch') {
     plugins.push({
@@ -47,29 +43,22 @@ module.exports = {
     resolve: {
         alias: {
             src: path.resolve(__dirname, './src/'),
-            'mattermost-redux': path.resolve(__dirname, './node_modules/mattermost-webapp/packages/mattermost-redux/src/'),
-            reselect: path.resolve(__dirname, './node_modules/mattermost-webapp/packages/reselect/src/index'),
         },
         modules: [
             'src',
             'node_modules',
         ],
         extensions: ['*', '.js', '.jsx', '.ts', '.tsx'],
-        fallback: {
-            buffer: require.resolve('buffer/'),
-        },
     },
     module: {
         rules: [
             {
                 test: /\.(js|jsx|ts|tsx)$/,
-                exclude: /node_modules\/(?!(mattermost-webapp)\/).*/,
+                exclude: /node_modules/,
                 use: {
                     loader: 'babel-loader',
                     options: {
                         cacheDirectory: true,
-
-                        // Babel configuration is in babel.config.js because jest requires it to be there.
                     },
                 },
             },
@@ -82,6 +71,11 @@ module.exports = {
                     },
                     {
                         loader: 'sass-loader',
+                        options: {
+                            sassOptions: {
+                                includePaths: ['node_modules/compass-mixins/lib', 'sass'],
+                            },
+                        },
                     },
                 ],
             },
@@ -100,6 +94,7 @@ module.exports = {
     },
     externals: {
         react: 'React',
+        'react-dom': 'ReactDOM',
         redux: 'Redux',
         'react-redux': 'ReactRedux',
         'prop-types': 'PropTypes',

@@ -4,12 +4,12 @@ package main
 
 import (
 	"encoding/json"
+	"strings"
 
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
-var manifest model.Manifest
-var wsActionPrefix string
+var manifest *model.Manifest
 
 const manifestStr = `
 {
@@ -18,13 +18,14 @@ const manifestStr = `
   "description": "Mattermost plugin to enable voice messaging.",
   "homepage_url": "https://github.com/streamer45/mattermost-plugin-voice",
   "support_url": "https://github.com/streamer45/mattermost-plugin-voice/issues",
-  "release_notes_url": "https://github.com/streamer45/mattermost-plugin-voicereleases/tag/v0.3.0",
-  "version": "0.3.0",
-  "min_server_version": "6.3.0",
+  "version": "0.4.0",
+  "min_server_version": "11.0.0",
   "server": {
     "executables": {
       "darwin-amd64": "server/dist/plugin-darwin-amd64",
+      "darwin-arm64": "server/dist/plugin-darwin-arm64",
       "linux-amd64": "server/dist/plugin-linux-amd64",
+      "linux-arm64": "server/dist/plugin-linux-arm64",
       "windows-amd64": "server/dist/plugin-windows-amd64.exe"
     },
     "executable": ""
@@ -42,7 +43,9 @@ const manifestStr = `
         "type": "number",
         "help_text": "Max duration allowed (in seconds) for voice messages.",
         "placeholder": "",
-        "default": 300
+        "default": 300,
+        "hosting": "",
+        "secret": false
       },
       {
         "key": "VoiceAudioBitrate",
@@ -64,16 +67,16 @@ const manifestStr = `
             "display_name": "Low (48 kbps)",
             "value": "48"
           }
-        ]
+        ],
+        "hosting": "",
+        "secret": false
       }
-    ]
+    ],
+    "sections": null
   }
 }
 `
 
 func init() {
-	if err := json.Unmarshal([]byte(manifestStr), &manifest); err != nil {
-		panic(err.Error())
-	}
-	wsActionPrefix = "custom_" + manifest.Id + "_"
+	_ = json.NewDecoder(strings.NewReader(manifestStr)).Decode(&manifest)
 }

@@ -12,14 +12,12 @@ const config = {
             },
             modules: false,
             corejs: 3,
-            debug: false,
             useBuiltIns: 'usage',
-            shippedProposals: true,
         }],
         ['@babel/preset-react', {
             useBuiltIns: true,
         }],
-        ['@babel/typescript', {
+        ['@babel/preset-typescript', {
             allExtensions: true,
             isTSX: true,
         }],
@@ -27,12 +25,11 @@ const config = {
     plugins: [
         '@babel/plugin-proposal-class-properties',
         '@babel/plugin-syntax-dynamic-import',
-        '@babel/proposal-object-rest-spread',
+        '@babel/plugin-proposal-object-rest-spread',
         'babel-plugin-typescript-to-proptypes',
     ],
 };
 
-// Jest needs module transformation
 config.env = {
     test: {
         presets: config.presets,
