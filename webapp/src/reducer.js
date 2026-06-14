@@ -7,6 +7,7 @@ import {
     STOP_RECORDING,
     CANCEL_RECORDING,
     UPDATE_RECORDING,
+    SET_RECORDING_ERROR,
 } from './action_types';
 
 const recordingModalVisible = (state = false, action) => {
@@ -35,7 +36,21 @@ const recordingDuration = (state = 0, action) => {
     }
 };
 
+const recordingError = (state = '', action) => {
+    switch (action.type) {
+    case OPEN_RECORDING_MODAL:
+    case START_RECORDING:
+    case CANCEL_RECORDING:
+        return '';
+    case SET_RECORDING_ERROR:
+        return action.error;
+    default:
+        return state;
+    }
+};
+
 export default combineReducers({
     recordingModalVisible,
     recordingDuration,
+    recordingError,
 });

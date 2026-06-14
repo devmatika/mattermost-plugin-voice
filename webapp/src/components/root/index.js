@@ -1,6 +1,6 @@
 import {cancelRecording, sendRecording} from 'actions';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {isRecordingModalVisible, recordingDuration} from 'selectors';
+import {isRecordingModalVisible, recordingDuration, recordingError} from 'selectors';
 
 import Root from './root';
 
@@ -13,6 +13,7 @@ const mapStateToProps = (state) => {
         duration: recordingDuration(state),
         channelId: getCurrentChannelId(state),
         rootId: state.views?.rhs?.selectedPostId || '',
+        error: recordingError(state),
     };
 };
 

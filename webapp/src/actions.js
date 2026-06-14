@@ -5,6 +5,7 @@ import {
     STOP_RECORDING,
     CANCEL_RECORDING,
     UPDATE_RECORDING,
+    SET_RECORDING_ERROR,
 } from './action_types';
 
 let Client = null;
@@ -19,46 +20,60 @@ const closeRecordingModal = () => (dispatch) => {
     dispatch({
         type: CLOSE_RECORDING_MODAL,
     });
+    dispatch({
+        type: SET_RECORDING_ERROR,
+        error: '',
+    });
+};
+
+const setRecordingError = (error) => (dispatch) => {
+    dispatch({
+        type: SET_RECORDING_ERROR,
+        error,
+    });
 };
 
 export const cancelRecording = () => (dispatch) => {
-    // console.log('cancel recording');
     dispatch({
         type: CANCEL_RECORDING,
     });
-    Client.cancelRecording();
+    Client.cancelRecording().catch(() => {
+        // Ignore cancel errors.
+    });
     closeRecordingModal()(dispatch);
 };
 
 export const sendRecording = (channelId, rootId) => (dispatch) => {
-    // console.log('send recording');
     dispatch({
         type: STOP_RECORDING,
     });
+
     Client.sendRecording(channelId, rootId).then(() => {
-        // console.log('DONE');
+        closeRecordingModal()(dispatch);
+    }).catch((err) => {
+        setRecordingError(err.message || 'Failed to send voice message')(dispatch);
     });
-    closeRecordingModal()(dispatch);
 };
 
 export const recordVoiceMessage = (channelId, rootId, client) => (dispatch) => {
-    // console.log('recordVoiceMessage');
     openRecordingModal()(dispatch);
 
     if (client) {
         Client = client;
     }
 
-    client.startRecording(channelId, rootId).then(() => {
-        dispatch({
-            type: START_RECORDING,
-        });
-    });
     client.on('update', (duration) => {
-        // console.log(duration);
         dispatch({
             type: UPDATE_RECORDING,
             duration,
         });
+    });
+
+    client.startRecording(channelId, rootId).then(() => {
+        dispatch({
+            type: START_RECORDING,
+        });
+    }).catch((err) => {
+        setRecordingError(err.message || 'Failed to start recording. Check microphone permissions.')(dispatch);
     });
 };

@@ -24,6 +24,7 @@ export default class Root extends React.Component {
         cancel: PropTypes.func.isRequired,
         send: PropTypes.func.isRequired,
         theme: PropTypes.object.isRequired,
+        error: PropTypes.string,
     }
 
     componentWillUnmount() {
@@ -55,6 +56,9 @@ export default class Root extends React.Component {
                         />
                     </span>
                     <span style={style.duration}>{this.getDuration()}</span>
+                    {this.props.error ? (
+                        <span style={style.error}>{this.props.error}</span>
+                    ) : null}
                     <button
                         className='voice-recording-button'
                         onClick={this.props.cancel}
@@ -104,5 +108,10 @@ const getStyle = (theme) => ({
     },
     duration: {
         padding: '0.5em',
+    },
+    error: {
+        padding: '0.5em',
+        color: '#d24b4e',
+        maxWidth: '20em',
     },
 });

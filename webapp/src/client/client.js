@@ -4,12 +4,15 @@ import {getPluginURL} from '../utils.js';
 
 import Recorder from './recorder.js';
 
-function getRequestHeaders(method) {
-    const options = Client4.getOptions({method});
+const DEFAULT_MAX_DURATION = 300;
+const DEFAULT_BIT_RATE = 64;
+
+function getRequestHeaders(method, body) {
+    const options = Client4.getOptions({method, body});
     const headers = {...options.headers};
 
     // Let the browser set multipart boundaries for file uploads.
-    if (method === 'post' && headers['Content-Type']?.includes('multipart/form-data')) {
+    if (body instanceof FormData && headers['Content-Type']?.includes('multipart/form-data')) {
         delete headers['Content-Type'];
     }
 
@@ -41,30 +44,23 @@ export default class Client {
             workerURL: `${getPluginURL()}/public/recorder.worker.js`,
         });
 
-        fetch(`${getPluginURL()}/config`, {
-            headers: {
-                Accept: 'application/json',
-            },
-            credentials: 'same-origin',
-        }).then(parseJSONResponse).then((config) => {
-            return this.recorder.init({
-                maxDuration: parseInt(config.VoiceMaxDuration, 10),
-                bitRate: parseInt(config.VoiceAudioBitrate, 10),
-            });
-        }).catch(() => {
-            // Use recorder defaults if config cannot be loaded.
+        this._ready = this.recorder.init({
+            maxDuration: DEFAULT_MAX_DURATION,
+            bitRate: DEFAULT_BIT_RATE,
         });
 
-        this.recorder.on('maxduration', () => {
-            if (this.timerID) {
-                clearInterval(this.timerID);
-            }
-            this.recorder.stop().then((recording) => {
-                this._recording = recording;
-                if (this._onUpdate) {
-                    this._onUpdate(0);
-                }
+        this._ready.then(() => {
+            return fetch(`${getPluginURL()}/config`, {
+                headers: {
+                    Accept: 'application/json',
+                },
+                credentials: 'same-origin',
+            }).then(parseJSONResponse).then((config) => {
+                this.recorder.maxDuration = parseInt(config.VoiceMaxDuration, 10) || DEFAULT_MAX_DURATION;
+                this.recorder.bitRate = parseInt(config.VoiceAudioBitrate, 10) || DEFAULT_BIT_RATE;
             });
+        }).catch(() => {
+            // Keep default recorder settings if config cannot be loaded.
         });
     }
 
@@ -72,12 +68,14 @@ export default class Client {
         this.channelId = channelId || null;
         this.rootId = rootId || null;
         this._recording = null;
-        return this.recorder.start().then(() => {
-            this.timerID = setInterval(() => {
-                if (this._onUpdate && this.recorder.startTime) {
-                    this._onUpdate(new Date().getTime() - this.recorder.startTime);
-                }
-            }, 200);
+        return this._ready.then(() => {
+            return this.recorder.start().then(() => {
+                this.timerID = setInterval(() => {
+                    if (this._onUpdate && this.recorder.startTime) {
+                        this._onUpdate(new Date().getTime() - this.recorder.startTime);
+                    }
+                }, 200);
+            });
         });
     }
 
@@ -86,7 +84,7 @@ export default class Client {
             clearInterval(this.timerID);
         }
         this._onUpdate = null;
-        return this.recorder.stop();
+        return this._ready.then(() => this.recorder.stop());
     }
 
     cancelRecording() {
@@ -94,7 +92,7 @@ export default class Client {
             clearInterval(this.timerID);
         }
         this._onUpdate = null;
-        return this.recorder.cancel();
+        return this._ready.then(() => this.recorder.cancel());
     }
 
     _sendRecording({channelId, rootId, recording}) {
@@ -105,7 +103,7 @@ export default class Client {
 
         return fetch(Client4.getFilesRoute(), {
             method: 'POST',
-            headers: getRequestHeaders('post'),
+            headers: getRequestHeaders('post', formData),
             body: formData,
             credentials: 'same-origin',
         }).then(parseJSONResponse).then((fileResponse) => {
@@ -127,11 +125,12 @@ export default class Client {
                     }],
                 },
             };
+            const body = JSON.stringify(data);
 
             return fetch(Client4.getPostsRoute(), {
                 method: 'POST',
-                headers: getRequestHeaders('post'),
-                body: JSON.stringify(data),
+                headers: getRequestHeaders('post', body),
+                body,
                 credentials: 'same-origin',
             }).then(parseJSONResponse);
         });
@@ -144,20 +143,21 @@ export default class Client {
         const cId = this.channelId ? this.channelId : channelId;
         const rId = !this.channelId && rootId ? rootId : this.rootId;
 
+        const send = (recording) => {
+            if (!recording || !recording.blob || recording.duration <= 0) {
+                return Promise.reject(new Error('no recording available'));
+            }
+            return this._sendRecording({
+                channelId: cId,
+                rootId: rId,
+                recording,
+            });
+        };
+
         if (this._recording) {
-            return this._sendRecording({
-                channelId: cId,
-                rootId: rId,
-                recording: this._recording,
-            });
+            return send(this._recording);
         }
-        return this.recorder.stop().then((res) => {
-            return this._sendRecording({
-                channelId: cId,
-                rootId: rId,
-                recording: res,
-            });
-        });
+        return this._ready.then(() => this.recorder.stop()).then(send);
     }
 
     on(type, cb) {

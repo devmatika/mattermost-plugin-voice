@@ -1,4 +1,6 @@
 import {FormattedMessage} from 'react-intl';
+import {Client4} from 'mattermost-redux/client';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import PostType from './components/post_type';
 import Root from './components/root';
@@ -9,6 +11,11 @@ import Client from './client';
 
 export default class VoicePlugin {
     initialize(registry, store) {
+        const config = getConfig(store.getState());
+        if (config?.SiteURL) {
+            Client4.setUrl(config.SiteURL);
+        }
+
         const client = new Client();
 
         registry.registerRootComponent(Root);
