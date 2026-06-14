@@ -1,24 +1,16 @@
 # Mattermost Voice Plugin
 
+Mattermost plugin for voice messaging, maintained by [devmatika](https://github.com/devmatika).
+
 This plugin adds support for basic **voice messaging** in Mattermost.
 
 **Requires Mattermost Server v11.0.0 or later** (tested with v11.7.x).
 
 ![](https://i.imgur.com/hPZ3GhG.gif)
 
-## Demo
-
-A demo server running the latest version of this plugin is located [here](https://mm.krad.stream/testing/channels/town-square).  
-You can login using the following details:
-
-```
-Username: demo
-Password: password
-```
-
 ## Usage
 
-To start sending a voice message you can either use the ```/voice``` slash command or the existing file attachment functionality as shown in the picture above.
+To start sending a voice message you can either use the `/voice` slash command or the existing file attachment functionality as shown in the picture above.
 
 ## Limitations
 
@@ -26,12 +18,12 @@ This plugin only works on web client and desktop app. Mobile native apps are **n
 
 ## Installation
 
-1. Download the latest version from the [release page](https://github.com/streamer45/mattermost-plugin-voice/releases).
+1. Download the latest version from the [release page](https://github.com/devmatika/mattermost-plugin-voice/releases).
 2. Upload the file through **System Console > Plugins > Plugin Management**. See the [plugin documentation](https://docs.mattermost.com/administration-guide/manage/plugins.html) for more details.
 
 ## Development
 
-Use ```make dist``` to build this plugin.
+Use `make dist` to build this plugin.
 
 Use `make deploy` to deploy the plugin to your local server.
 
@@ -47,6 +39,7 @@ For more details on how to develop a plugin refer to the official [documentation
 
 ## License
 
-[mattermost-plugin-voice](https://github.com/streamer45/mattermost-plugin-voice) is licensed under [MIT](LICENSE)  
+[mattermost-plugin-voice](https://github.com/devmatika/mattermost-plugin-voice) is licensed under [MIT](LICENSE)  
+Originally forked from [streamer45/mattermost-plugin-voice](https://github.com/streamer45/mattermost-plugin-voice).  
 [mp3rec-wasm](https://github.com/streamer45/mp3rec-wasm) is licensed under [MIT](LICENSE)  
-[LAME](http://lame.sourceforge.net/) is licensed under [LGPL](vendor/lame/COPYING)  
+[LAME](http://lame.sourceforge.net/) is licensed under [LGPL](vendor/lame/COPYING)

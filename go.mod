@@ -1,4 +1,4 @@
-module github.com/streamer45/mattermost-plugin-voice
+module github.com/devmatika/mattermost-plugin-voice
 
 go 1.25
 
