@@ -8,7 +8,7 @@ import Root from './components/root';
 import VoiceFilePreview, {isVoiceFile} from './components/file_preview/voice_file_preview';
 import reducer from './reducer';
 import {recordVoiceMessage} from './actions';
-import {getPluginURL} from './utils';
+import {getPluginURL, normalizeChannelId} from './utils';
 import {injectVoiceStyles} from './styles';
 
 import Client from './client';
@@ -26,8 +26,8 @@ export default class VoicePlugin {
 
         const client = new Client();
 
-        const startRecording = (channelId = '', rootId = '') => {
-            const resolvedChannelId = channelId || getCurrentChannelId(store.getState()) || '';
+        const startRecording = (channelLike = '', rootId = '') => {
+            const resolvedChannelId = normalizeChannelId(channelLike) || getCurrentChannelId(store.getState()) || '';
             recordVoiceMessage(resolvedChannelId, rootId, client)(store.dispatch, store.getState);
         };
 
@@ -60,7 +60,7 @@ export default class VoicePlugin {
         );
         registry.registerAppBarComponent({
             iconUrl: `${getPluginURL()}/public/voice-icon.svg`,
-            action: (channelId) => startRecording(channelId),
+            action: (channelLike) => startRecording(channelLike),
             tooltipText: (
                 <FormattedMessage
                     id='plugin.app_bar'

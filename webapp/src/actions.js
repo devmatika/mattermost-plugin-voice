@@ -1,5 +1,6 @@
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 
+import {normalizeChannelId} from './utils';
 import {
     OPEN_RECORDING_MODAL,
     CLOSE_RECORDING_MODAL,
@@ -69,7 +70,7 @@ export const sendRecording = () => (dispatch, getState) => {
 
 export const recordVoiceMessage = (channelId, rootId, client) => (dispatch, getState) => {
     const state = getState();
-    const resolvedChannelId = channelId || getCurrentChannelId(state) || '';
+    const resolvedChannelId = normalizeChannelId(channelId) || getCurrentChannelId(state) || '';
     const resolvedRootId = rootId || state.views?.rhs?.selectedPostId || '';
 
     if (!resolvedChannelId) {

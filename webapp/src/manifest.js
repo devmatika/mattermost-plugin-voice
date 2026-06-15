@@ -7,8 +7,8 @@ const manifest = JSON.parse(`
     "description": "Mattermost plugin to enable voice messaging.",
     "homepage_url": "https://github.com/devmatika/mattermost-plugin-voice",
     "support_url": "https://github.com/devmatika/mattermost-plugin-voice/issues",
-    "release_notes_url": "https://github.com/devmatika/mattermost-plugin-voice/releases/tag/v1.0.2",
-    "version": "1.0.3",
+    "release_notes_url": "https://github.com/devmatika/mattermost-plugin-voice/releases/tag/v1.0.3",
+    "version": "1.0.4",
     "min_server_version": "11.0.0",
     "server": {
         "executables": {
