@@ -22,7 +22,16 @@ function getRequestHeaders(method, body) {
 function parseJSONResponse(response) {
     if (!response.ok) {
         return response.text().then((text) => {
-            throw new Error(text || response.statusText);
+            let message = text || response.statusText;
+            try {
+                const payload = JSON.parse(text);
+                if (payload.message) {
+                    message = payload.message;
+                }
+            } catch {
+                // Keep plain-text error body.
+            }
+            throw new Error(message);
         });
     }
 
@@ -133,11 +142,12 @@ export default class Client {
     }
 
     sendRecording(channelId, rootId) {
-        if (!this.channelId && !channelId) {
-            return Promise.reject(new Error('channel id is required'));
+        const cId = this.channelId || channelId;
+        const rId = this.rootId || rootId || '';
+
+        if (!cId) {
+            return Promise.reject(new Error('Open a channel before sending a voice message.'));
         }
-        const cId = this.channelId ? this.channelId : channelId;
-        const rId = !this.channelId && rootId ? rootId : this.rootId;
 
         const send = (recording) => {
             if (!recording || !recording.blob || recording.duration <= 0) {

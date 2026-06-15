@@ -1,5 +1,6 @@
 import {FormattedMessage} from 'react-intl';
 import {Client4} from 'mattermost-redux/client';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import PostType from './components/post_type';
@@ -26,7 +27,8 @@ export default class VoicePlugin {
         const client = new Client();
 
         const startRecording = (channelId = '', rootId = '') => {
-            recordVoiceMessage(channelId, rootId, client)(store.dispatch, store.getState);
+            const resolvedChannelId = channelId || getCurrentChannelId(store.getState()) || '';
+            recordVoiceMessage(resolvedChannelId, rootId, client)(store.dispatch, store.getState);
         };
 
         registry.registerRootComponent(Root);

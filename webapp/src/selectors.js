@@ -7,3 +7,7 @@ export const isRecordingModalVisible = (state) => getPluginState(state).recordin
 export const recordingDuration = (state) => getPluginState(state).recordingDuration;
 
 export const recordingError = (state) => getPluginState(state).recordingError || '';
+
+export const recordingChannelId = (state) => getPluginState(state).recordingChannelId || '';
+
+export const recordingRootId = (state) => getPluginState(state).recordingRootId || '';

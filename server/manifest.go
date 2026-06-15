@@ -18,7 +18,8 @@ const manifestStr = `
   "description": "Mattermost plugin to enable voice messaging.",
   "homepage_url": "https://github.com/devmatika/mattermost-plugin-voice",
   "support_url": "https://github.com/devmatika/mattermost-plugin-voice/issues",
-  "version": "1.0.2",
+  "release_notes_url": "https://github.com/devmatika/mattermost-plugin-voice/releases/tag/v1.0.2",
+  "version": "1.0.3",
   "min_server_version": "11.0.0",
   "server": {
     "executables": {

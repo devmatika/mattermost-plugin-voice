@@ -19,8 +19,6 @@ export default class Root extends React.Component {
     static propTypes = {
         visible: PropTypes.bool.isRequired,
         duration: PropTypes.number.isRequired,
-        channelId: PropTypes.string.isRequired,
-        rootId: PropTypes.string,
         cancel: PropTypes.func.isRequired,
         send: PropTypes.func.isRequired,
         theme: PropTypes.object.isRequired,
@@ -38,7 +36,7 @@ export default class Root extends React.Component {
     }
 
     send = () => {
-        this.props.send(this.props.channelId, this.props.rootId);
+        this.props.send();
     }
 
     render() {

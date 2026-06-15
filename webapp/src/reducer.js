@@ -8,6 +8,7 @@ import {
     CANCEL_RECORDING,
     UPDATE_RECORDING,
     SET_RECORDING_ERROR,
+    SET_RECORDING_TARGET,
 } from './action_types';
 
 const recordingModalVisible = (state = false, action) => {
@@ -49,8 +50,34 @@ const recordingError = (state = '', action) => {
     }
 };
 
+const recordingChannelId = (state = '', action) => {
+    switch (action.type) {
+    case SET_RECORDING_TARGET:
+        return action.channelId || '';
+    case CLOSE_RECORDING_MODAL:
+    case CANCEL_RECORDING:
+        return '';
+    default:
+        return state;
+    }
+};
+
+const recordingRootId = (state = '', action) => {
+    switch (action.type) {
+    case SET_RECORDING_TARGET:
+        return action.rootId || '';
+    case CLOSE_RECORDING_MODAL:
+    case CANCEL_RECORDING:
+        return '';
+    default:
+        return state;
+    }
+};
+
 export default combineReducers({
     recordingModalVisible,
     recordingDuration,
     recordingError,
+    recordingChannelId,
+    recordingRootId,
 });

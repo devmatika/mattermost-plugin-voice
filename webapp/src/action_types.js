@@ -7,3 +7,4 @@ export const STOP_RECORDING = pluginId + '_stop_recording';
 export const UPDATE_RECORDING = pluginId + '_update_recording';
 export const CANCEL_RECORDING = pluginId + '_cancel_recording';
 export const SET_RECORDING_ERROR = pluginId + '_set_recording_error';
+export const SET_RECORDING_TARGET = pluginId + '_set_recording_target';
